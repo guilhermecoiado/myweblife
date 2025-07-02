@@ -1,0 +1,65 @@
+{
+  "name": "MyWebLife - Sistema de Presença",
+  "short_name": "MyWebLife",
+  "description": "Sistema de controle de presença e hierarquia para igreja",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563EB",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "/church-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/church-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acesso rápido ao dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/church-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Eventos",
+      "short_name": "Eventos",
+      "description": "Ver eventos da igreja",
+      "url": "/events",
+      "icons": [
+        {
+          "src": "/church-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Checkins",
+      "short_name": "Checkins",
+      "description": "Fazer check-in em eventos",
+      "url": "/my-checkins",
+      "icons": [
+        {
+          "src": "/church-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
