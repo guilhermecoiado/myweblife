@@ -1,4 +1,4 @@
-import { mockDb } from '../lib/mockDatabase';
+import { supabase } from '../lib/supabase';
 import { User } from '../types';
 
 export const authService = {
@@ -7,14 +7,16 @@ export const authService = {
     try {
       // Login demo
       if (email === 'masterapp' && password === 'Padrâo@123#') {
-        const users = await mockDb.findAll<User>('users');
+        const { data: users, error } = await supabase
+          .from('users')
+          .select('*');
+
+        if (error) throw error;
+
         const superadmin = users.find(u => u.role === 'superadmin');
-        
-        if (superadmin) {
-          return superadmin;
-        }
-        
-        // Fallback para usuário demo se não encontrar superadmin
+        if (superadmin) return superadmin as User;
+
+        // Fallback demo user
         return {
           id: 'demo-superadmin-id',
           email: 'admin@myweblife.com',
@@ -29,18 +31,17 @@ export const authService = {
         };
       }
 
-      // Buscar usuário por email
-      const users = await mockDb.findWhere<User>('users', (user) => 
-        user.email === email && user.is_active
-      );
-      
-      if (users.length > 0) {
-        // Em produção, aqui você verificaria o hash da senha
-        // Por enquanto, aceita qualquer senha para usuários existentes
-        return users[0];
-      }
+      // Buscar usuário ativo por email
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('is_active', true);
 
-      return null;
+      if (error || !users || users.length === 0) return null;
+
+      // Em produção: verificação de hash de senha aqui
+      return users[0] as User;
     } catch (error) {
       console.error('Erro na autenticação:', error);
       return null;
@@ -50,7 +51,14 @@ export const authService = {
   // Buscar perfil do usuário
   async getProfile(userId: string): Promise<User | null> {
     try {
-      return await mockDb.findById<User>('users', userId);
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) return null;
+      return data as User;
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
       return null;
@@ -60,7 +68,15 @@ export const authService = {
   // Atualizar perfil do usuário
   async updateProfile(userId: string, profileData: Partial<User>): Promise<User | null> {
     try {
-      return await mockDb.update<User>('users', userId, profileData);
+      const { data, error } = await supabase
+        .from('users')
+        .update(profileData)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) return null;
+      return data as User;
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       return null;
