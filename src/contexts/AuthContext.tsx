@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, AuthContext as AuthContextType } from '../types';
 import { authService } from '../services/authService';
-import { testConnection } from '../lib/mockDatabase';
 import { toast } from 'react-toastify';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,22 +18,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Testar conexão com o banco e verificar sessão existente
     const initializeAuth = async () => {
       try {
-        // Testar conexão com mock database
-        const connected = await testConnection();
-        if (!connected) {
-          toast.error('Erro na inicialização do banco de dados');
-        }
-
         // Verificar se há usuário logado no localStorage
         const savedUser = localStorage.getItem('myweblife_user');
         if (savedUser) {
           try {
             const userData = JSON.parse(savedUser);
-            // Verificar se o usuário ainda existe no banco
-            const currentUser = await authService.getProfile(userData.id);
+            // Buscar usuário atualizado no banco
+            const currentUser = await authService.getById(userData.id);
             if (currentUser && currentUser.is_active) {
               setUser(currentUser);
             } else {
@@ -57,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       const authenticatedUser = await authService.authenticate(email, password);
-      
+
       if (authenticatedUser) {
         setUser(authenticatedUser);
         localStorage.setItem('myweblife_user', JSON.stringify(authenticatedUser));
@@ -87,8 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       if (!user) throw new Error('Usuário não encontrado');
 
-      const updatedUser = await authService.updateProfile(user.id, data);
-      
+      const updatedUser = await authService.update(user.id, data);
+
       if (updatedUser) {
         setUser(updatedUser);
         localStorage.setItem('myweblife_user', JSON.stringify(updatedUser));
