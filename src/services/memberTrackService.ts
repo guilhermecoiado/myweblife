@@ -1,37 +1,65 @@
-import { mockDb } from '../lib/mockDatabase';
+import { supabase } from '../lib/supabase';
 import { MemberTrack } from '../types';
 
 export const memberTrackService = {
   // Buscar todos os trilhos
   async getAll(): Promise<MemberTrack[]> {
-    return await mockDb.findAll<MemberTrack>('member_tracks');
+    const { data, error } = await supabase
+      .from<MemberTrack>('member_tracks')
+      .select('*');
+
+    if (error) throw error;
+    return data;
   },
 
   // Buscar trilho por ID
   async getById(id: string): Promise<MemberTrack | null> {
-    return await mockDb.findById<MemberTrack>('member_tracks', id);
+    const { data, error } = await supabase
+      .from<MemberTrack>('member_tracks')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) return null;
+    return data;
   },
 
   // Buscar trilho por usuário
   async getByUserId(userId: string): Promise<MemberTrack | null> {
-    const tracks = await mockDb.findWhere<MemberTrack>('member_tracks', (track) => 
-      track.user_id === userId
-    );
-    return tracks[0] || null;
+    const { data, error } = await supabase
+      .from<MemberTrack>('member_tracks')
+      .select('*')
+      .eq('user_id', userId)
+      .limit(1)
+      .single();
+
+    if (error) return null;
+    return data;
   },
 
   // Criar novo trilho
   async create(trackData: Omit<MemberTrack, 'id' | 'created_at' | 'updated_at'>): Promise<MemberTrack> {
-    return await mockDb.create<MemberTrack>('member_tracks', trackData);
+    const { data, error } = await supabase
+      .from<MemberTrack>('member_tracks')
+      .insert(trackData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 
   // Atualizar trilho
   async update(id: string, trackData: Partial<MemberTrack>): Promise<MemberTrack> {
-    const updated = await mockDb.update<MemberTrack>('member_tracks', id, trackData);
-    if (!updated) {
-      throw new Error('Trilho não encontrado');
-    }
-    return updated;
+    const { data, error } = await supabase
+      .from<MemberTrack>('member_tracks')
+      .update(trackData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !data) throw new Error('Trilho não encontrado');
+    return data;
   },
 
   // Atualizar trilho por usuário
@@ -61,20 +89,35 @@ export const memberTrackService = {
 
   // Deletar trilho
   async delete(id: string): Promise<boolean> {
-    return await mockDb.delete<MemberTrack>('member_tracks', id);
+    const { error } = await supabase
+      .from<MemberTrack>('member_tracks')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
   },
 
   // Buscar discipuladores
   async getDiscipuladores(): Promise<MemberTrack[]> {
-    return await mockDb.findWhere<MemberTrack>('member_tracks', (track) => 
-      track.is_discipulador
-    );
+    const { data, error } = await supabase
+      .from<MemberTrack>('member_tracks')
+      .select('*')
+      .eq('is_discipulador', true);
+
+    if (error) throw error;
+    return data;
   },
 
   // Buscar membros em discipulado
   async getMembersInDiscipulado(): Promise<MemberTrack[]> {
-    return await mockDb.findWhere<MemberTrack>('member_tracks', (track) => 
-      track.discipulado && track.discipulado_por !== null
-    );
+    const { data, error } = await supabase
+      .from<MemberTrack>('member_tracks')
+      .select('*')
+      .eq('discipulado', true)
+      .not('discipulado_por', 'is', null);
+
+    if (error) throw error;
+    return data;
   }
 };
