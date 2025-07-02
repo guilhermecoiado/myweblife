@@ -1,61 +1,111 @@
-import { mockDb } from '../lib/mockDatabase';
+import { supabase } from '../lib/supabaseClient';
 import { User, UserRole } from '../types';
 
 export const userService = {
   // Buscar todos os usuários
   async getAll(): Promise<User[]> {
-    const users = await mockDb.findAll<User>('users');
-    return users.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as User[];
   },
 
   // Buscar usuário por ID
   async getById(id: string): Promise<User | null> {
-    return await mockDb.findById<User>('users', id);
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) return null;
+    return data as User;
   },
 
   // Buscar usuário por email
   async getByEmail(email: string): Promise<User | null> {
-    const users = await mockDb.findWhere<User>('users', (user) => user.email === email);
-    return users[0] || null;
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (error) return null;
+    return data as User;
   },
 
   // Criar novo usuário
   async create(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
-    return await mockDb.create<User>('users', userData);
+    const { data, error } = await supabase
+      .from('users')
+      .insert([userData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as User;
   },
 
   // Atualizar usuário
   async update(id: string, userData: Partial<User>): Promise<User> {
-    const updated = await mockDb.update<User>('users', id, userData);
-    if (!updated) {
-      throw new Error('Usuário não encontrado');
-    }
-    return updated;
+    const { data, error } = await supabase
+      .from('users')
+      .update(userData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as User;
   },
 
   // Deletar usuário
   async delete(id: string): Promise<boolean> {
-    return await mockDb.delete<User>('users', id);
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
   },
 
   // Buscar usuários por role
   async getByRole(role: UserRole): Promise<User[]> {
-    return await mockDb.findWhere<User>('users', (user) => 
-      user.role === role && user.is_active
-    );
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('role', role)
+      .eq('is_active', true);
+
+    if (error) throw error;
+    return data as User[];
   },
 
   // Buscar subordinados de um usuário
   async getSubordinates(userId: string): Promise<User[]> {
-    return await mockDb.findWhere<User>('users', (user) => user.superior_id === userId);
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('superior_id', userId);
+
+    if (error) throw error;
+    return data as User[];
   },
 
   // Ativar/Desativar usuário
   async toggleStatus(id: string, isActive: boolean): Promise<User> {
-    const updated = await mockDb.update<User>('users', id, { is_active: isActive });
-    if (!updated) {
-      throw new Error('Usuário não encontrado');
-    }
-    return updated;
+    const { data, error } = await supabase
+      .from('users')
+      .update({ is_active: isActive })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as User;
   }
 };
