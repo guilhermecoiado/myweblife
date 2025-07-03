@@ -1,5 +1,5 @@
 import { User, Event, EventType, Group, Notification, Attendance, MemberTrack, WeeklyReport } from '../types';
-
+{}
 // Mock database using localStorage for persistence
 class MockDatabase {
   private getStorageKey(table: string): string {
