@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
+import bcrypt from 'bcryptjs';
 
 export const authService = {
   // Autenticar usuário
@@ -14,8 +15,16 @@ export const authService = {
 
       if (error || !users || users.length === 0) return null;
 
-      // Em produção: verificação de hash de senha aqui
-      return users[0] as User;
+      const user = users[0] as User & { password_hash?: string };
+
+      if (!user.password_hash) return null;
+      const isValid = await bcrypt.compare(password, user.password_hash);
+      if (!isValid) return null;
+
+      // Não retorne o hash para o frontend!
+      delete (user as any).password_hash;
+
+      return user;
     } catch (error) {
       console.error('Erro na autenticação:', error);
       return null;
