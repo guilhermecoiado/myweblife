@@ -5,32 +5,6 @@ export const authService = {
   // Autenticar usuário
   async authenticate(email: string, password: string): Promise<User | null> {
     try {
-      // Login demo
-      if (email === 'masterapp' && password === 'Padrâo@123#') {
-        const { data: users, error } = await supabase
-          .from('users')
-          .select('*');
-
-        if (error) throw error;
-
-        const superadmin = users.find(u => u.role === 'superadmin');
-        if (superadmin) return superadmin as User;
-
-        // Fallback demo user
-        return {
-          id: 'demo-superadmin-id',
-          email: 'admin@myweblife.com',
-          name: 'Administrador do Sistema',
-          role: 'superadmin',
-          superior_id: null,
-          phone: null,
-          profile_photo: null,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-      }
-
       // Buscar usuário ativo por email
       const { data: users, error } = await supabase
         .from('users')
